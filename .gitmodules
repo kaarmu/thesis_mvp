@@ -1,3 +1,6 @@
 [submodule "src/nats-ros-connector"]
 	path = src/nats-ros-connector
 	url = https://github.com/aljanabim/nats-ros-connector
+[submodule "src/svea_planners"]
+	path = src/svea_planners
+	url = https://github.com/kth-sml/svea_planners
