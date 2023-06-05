@@ -88,8 +88,10 @@ class vehicle:
 
         ## Subscriber
 
+        
+        rospy.loginfo('Waiting for LTMS')
         rospy.wait_for_message('/ltms/heartbeat', Empty)
-        print("Connected to LTMS")
+        rospy.loginfo("Connected to LTMS")
 
         self.goal_pub = rospy.Publisher('/goal', PointStamped, queue_size=10)
         self.request_path = rospy.ServiceProxy('/ltms/request_path', PathService)
@@ -162,12 +164,12 @@ class vehicle:
                     break
 
                 self.target = tuple(point)
-                while 0.2 < self.dist_to(self.target):
+                while 0.4 < self.dist_to(self.target):
                     if not self.keep_alive(): return
                     self.rate.sleep()
                     self.spin()
 
-                if self.dist_to((self.goal.x, self.goal.y)) < 0.2:
+                if self.dist_to((self.goal.x, self.goal.y)) < 0.4:
                     self.set_goal('A' if self.goal_name == self.GOAL else
                                   self.GOAL)
                     break

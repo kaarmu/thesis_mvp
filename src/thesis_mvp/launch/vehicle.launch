@@ -7,8 +7,8 @@
     <arg name="is_sim"          default="true"/>
     <arg name="use_rviz"        default="true"/>
     <arg name="start_rviz"      default="false"/>
-    <arg name="initial_pose_x"  default="-2.65488696"/>
-    <arg name="initial_pose_y"  default="-1.64422277"/>
+    <arg name="initial_pose_x"  default="2.5"/>
+    <arg name="initial_pose_y"  default="-1.0"/>
     <arg name="initial_pose_a"  default="1.57" /> <!-- wrt to map-->
 
     <!-- Start map server -->
@@ -34,11 +34,15 @@
     <node name="nats_connector" pkg="nats_ros_connector" type="nats_connector.py" output="screen">
         <remap from="/$(arg name)/state"    to="/state"/>
         <remap from="/$(arg name)/path"     to="/path_plan"/>
+        <remap from="/$(arg name)/goal"     to="/goal"/>
+        <remap from="/$(arg name)/target"   to="/target"/>
         <rosparam subst_value="true">
-        host: nats://sml-wan.asuscomm.com 
+        host: nats://130.237.50.52:4222 # nats://sml-wan.asuscomm.com 
         publishers:
           - /$(arg name)/state
           - /$(arg name)/path
+          - /$(arg name)/goal
+          - /$(arg name)/target
         subscribers:
           - /ltms/heartbeat
         service_proxies:

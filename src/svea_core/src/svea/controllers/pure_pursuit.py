@@ -7,7 +7,7 @@ import math
 class PurePursuitController(object):
 
     k = 0.6  # look forward gain
-    Lfc = 0.2  # look-ahead distance
+    Lfc = 0.3  # look-ahead distance
     K_p = 1.0  # speed control propotional gain
     K_i = 0.2  # speed control integral gain
     L = 0.324  # [m] wheel base of vehicle
