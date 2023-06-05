@@ -7,9 +7,9 @@
 
     <!-- Auxiliary -->
     <arg name="max_age"             default="30"/>
+    <arg name="aruco_size"          default="0.1"/>
 
     <!-- Constants -->
-    <arg name="aruco_size"      value="0.106"/>
     <arg name="depth_image"     value="/zed/zed_node/depth/depth_registered"/>
     <arg name="image"           value="/zed/zed_node/rgb/image_rect_color"/>
 

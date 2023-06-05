@@ -4,28 +4,42 @@ import rospy
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import PolygonStamped, Point32
 
-from rosonic import Node, Parameter
 from svea_msgs.msg import VehicleState as VehicleStateMsg
+
+def load_param(name, value=None):
+    if value is None:
+        assert rospy.has_param(name), f'Missing parameter "{name}"'
+    return rospy.get_param(name, value)
 
 def isinside(pt, box):
     xl, yl, xu, yu = box
     x, y = pt
     return (xl < x < xu) and (yl < y < yu)
 
-class geofence(Node):
-
-    BOX = Parameter('~box')
-    STATE_TOP = Parameter('~state')
-    TRIGGER_SRV = Parameter('~trigger')
+class geofence:
 
     WARN_MESSAGE = 'Geofence for "%s" was triggered but client was not successful: %s'
 
     def __init__(self):
 
+        ## Initialize node
+
+        rospy.init_node('geofence')
+
+        ## Parameters
+
+        self.BOX = load_param('~box')
+        self.STATE_TOP = load_param('~state')
+        self.TRIGGER_SRV = load_param('~trigger')
+
+        ## Services
+
         rospy.wait_for_service(self.TRIGGER_SRV)
-        self.log('trigger service ready')
+        rospy.loginfo('trigger service ready')
 
         self.trigger = rospy.ServiceProxy(self.TRIGGER_SRV, Trigger)
+
+        ## Topics
 
         self.pub_fenced_area = rospy.Publisher(
             'fenced_area',
@@ -41,7 +55,10 @@ class geofence(Node):
             self.state_cb,
         )
 
-        self.log('geofence is up!')
+        rospy.loginfo('Geofence is up!')
+
+    def run(self):
+        rospy.spin()
 
     def publish_fenced_area(self):
         xl, yl, xu, yu = self.BOX
@@ -60,8 +77,10 @@ class geofence(Node):
         pt = (msg.x, msg.y)
         if isinside(pt, self.BOX):
             resp = self.trigger()
-            resp.success or self.logwarn(self.WARN_MESSAGE, self.STATE_TOP, resp.message)
+            if not resp.success:
+                rospy.logwarn(self.WARN_MESSAGE, self.STATE_TOP, resp.message)
 
 if __name__ == '__main__':
 
     geofence().run()
+

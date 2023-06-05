@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Include -->
+
+    <include file="$(find svea_vision)/launch/zed_main.launch">
+        <arg name="enable_bbox_image"   value="true"/>
+    </include>
+
+</launch>
