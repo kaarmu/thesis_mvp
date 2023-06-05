@@ -1,0 +1,6 @@
+string name
+string goal_name
+geometry_msgs/Point goal
+---
+float32 velocity
+nav_msgs/Path path

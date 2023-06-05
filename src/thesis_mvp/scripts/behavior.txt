@@ -1,0 +1,20 @@
+# Target For Inner Circle
+() ->
+    Is on left side? TARGET is A.
+    Is on right side? ->
+        Is clear at B ? TARGET is B : TARGET is C.
+
+# Target For Outer Circle
+->
+    Is on left side? TARGET is A.
+    Is on right side? TARGET is C.
+
+# Speed limit
+->
+    Is on inner circle? VELOCITY is 0.5 m/s : VELOCITY is 1.0 m/s.
+
+# Safety
+
+
+
+

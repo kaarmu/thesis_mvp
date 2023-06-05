@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Launch file arguments -->
+    <arg name="map"             default="sml"/>
+    <arg name="use_rviz"        default="true"/>
+    <arg name="start_rviz"      default="false"/>
+
+    <!-- Start map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find svea_core)/maps/$(arg map).yaml" output="screen"/>
+
+    <!-- Start RViz -->
+    <node if="$(eval use_rviz and start_rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find svea_core)/rviz/SVEA_floor2.rviz"/>
+
+    <node name="nats_connector" pkg="nats_ros_connector" type="nats_connector.py" output="screen">
+        <rosparam>
+        host: nats://sml-wan.asuscomm.com 
+        publishers:
+          - /ltms/heartbeat
+        subscribers:
+          - /svea7/state 
+          - /svea7/path 
+          - /svea4/state
+          - /svea4/path
+        services:
+          - /ltms/request_path
+        </rosparam>
+    </node>
+
+    <!-- Start pure_pursuit -->
+    <node name="ltms" pkg="thesis_mvp" type="ltms.py" output="screen">
+        <!-- Waypoints for floo2 map -->
+        <rosparam>
+        clients:
+          - svea7
+          - svea4
+        </rosparam>
+    </node>
+</launch>

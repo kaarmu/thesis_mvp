@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(thesis_mvp)
+cmake_minimum_required(VERSION 2.8.3)
+project(svea_geofence)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -10,10 +10,6 @@ project(thesis_mvp)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   svea_core
-  std_msgs
-  nav_msgs
-  geometry_msgs
-  message_generation
 )
 
 
@@ -54,10 +50,11 @@ catkin_python_setup()
 #)
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  Path.srv
-)
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -67,12 +64,10 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  nav_msgs
-  geometry_msgs
-)
+#generate_messages(
+  #DEPENDENCIES
+  #std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

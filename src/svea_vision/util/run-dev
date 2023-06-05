@@ -13,7 +13,7 @@
 
 # Setting default arguments
 if [ -z "$*" ]
-then set -- "$IMAGE_TAG"
+then set -- --name "$CONTAINER_NAME" "$IMAGE_TAG"
 fi
 
 
@@ -32,6 +32,5 @@ istrue DEBUG && fn="echo" || fn="exec"
     -v "/tmp/.X11-unix:/tmp/.X11-unix" \
     -v "/etc/localtime:/etc/localtime:ro" \
     -v "$SHRVOL_SRC:$SHRVOL_DST" \
-    --rm \
     "$@"
 

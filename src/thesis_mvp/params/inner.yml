@@ -1,0 +1,57 @@
+hdmap:
+  tracks:
+    - name: Same
+      start: [0, 0, 90]
+      arcs:
+        - [1.0]
+        - [0.5, 90]
+        - [4.0]
+        - [0.5, 90]
+        - [1.0]
+    - name: Big
+      x0: [2.5, -1.0, 1.54]
+      arcs:
+        - [2.5]
+        - [0.5, 90]
+        - [4.0]
+        - [0.5, 90]
+        - [2.5]
+    - name: Small
+      x0: [2.5, -1.0, 1.54]
+      arcs:
+        - [0.5, 90]
+        - [4.0]
+        - [0.5, 90]
+behaviors:
+  - name: Circle in Big track.
+    type: sequence
+    children:
+      - type: selector
+        children:
+          - type: condition
+            expr: Is inside Big track?
+          - type: action
+            expr: Go to Big track.
+      - type: selector
+        children:
+          - type: condition
+            expr: Is inside Same track?
+          - type: action
+            expr: Go to Same track.
+  - name: Circle in Small track.
+    type: sequence
+    children:
+      - type: selector
+        children:
+          - type: condition
+            expr: Is inside Small track.
+          - type: action
+            expr: Go to Small track.
+      - type: selector
+        children:
+          - type: condition
+            expr: Is inside Same track?
+          - type: action
+            expr: Go to Same track.
+
+

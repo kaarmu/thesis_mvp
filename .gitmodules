@@ -4,3 +4,6 @@
 [submodule "src/svea_planners"]
 	path = src/svea_planners
 	url = https://github.com/kth-sml/svea_planners
+[submodule "src/svea_spac"]
+	path = src/svea_spac
+	url = https://github.com/kth-sml/svea_spac
