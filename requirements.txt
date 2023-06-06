@@ -3,5 +3,7 @@
 # on this repository can use this to easily modify the build.
 do-mpc
 scipy
+opencv-contrib-python<4.7
+ultralytics
 nats-py
-
+filterpy

@@ -77,7 +77,7 @@ class Track:
     def update_road_user(self, name, state):
         dist = np.linalg.norm(self.points_array[:2].T - np.array([state.x, state.y]),
                               axis=-1)
-        if dist.min() < 0.5:
+        if dist.min() < 0.4:
             self.road_users[name] = state
         elif name in self.road_users:
             del self.road_users[name]

@@ -3,10 +3,13 @@
 import numpy as np
 
 import rospy
+import tf2_ros
+from tf2_geometry_msgs import do_transform_point
 from std_msgs.msg import Empty
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
 from svea_msgs.msg import VehicleState
+from rsu_msgs.msg import StampedObjectPoseArray
 
 from thesis_mvp.srv import Path as PathService, PathRequest, PathResponse
 from thesis_mvp.track import Track, Arc
@@ -57,11 +60,11 @@ class ltms:
         ]
 
         self.LARGE_CIRCUIT = [
-            [2.0],
+            [2.5],
             [1.0, 90],
             [3.0],
             [1.0, 90],
-            [2.0],
+            [2.5],
         ]
 
         ## Create simulators, models, managers, etc.
@@ -77,16 +80,34 @@ class ltms:
             Arc.from_circle_segment(*arc)
             for arc in self.SMALL_CIRCUIT
         ], *self.INTERSECTION_1, POINT_DENSITY=100)
-        self.small_track.connects_to(self.shared_track)
+        # self.small_track.connects_to(self.shared_track)
 
         self.large_track = Track([
             Arc(*arc) if len(arc) == 1 else
             Arc.from_circle_segment(*arc)
             for arc in self.LARGE_CIRCUIT
         ], *self.INTERSECTION_1, POINT_DENSITY=100)
-        self.large_track.connects_to(self.shared_track)
+        # self.large_track.connects_to(self.shared_track)
+
+        ## TF 
+
+        self.tfBuffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tfBuffer)
 
         ## Subscribers
+
+        self.last_person = rospy.Time(0)
+
+        people_pub = rospy.Publisher('people', PointStamped, queue_size=10)
+        def objectposes_cb(msg):
+            for objpose in msg.objects:
+                if objpose.object.label == 'person':
+                    point = PointStamped(msg.header, objpose.pose.pose.position)
+                    people_pub.publish(point)
+                    point = self.transform_point('map', point)
+                    if -0.25 < point.point.x < 0.25 and -0.25 < point.point.y < 0.25: 
+                        self.last_person = msg.header.stamp
+        rospy.Subscriber('/objectposes', StampedObjectPoseArray, objectposes_cb)
 
         self.clients = {}
         for client in self.CLIENTS:
@@ -128,11 +149,16 @@ class ltms:
             path.poses.append(pose)
         return path
 
+    def transform_point(self, to_frame, point_stamped):
+        frame_id = point_stamped.header.frame_id
+        trans = self.tfBuffer.lookup_transform(to_frame, frame_id, rospy.Time(0))
+        return do_transform_point(point_stamped, trans)
+
     def request_path_srv_cb(self, req: PathRequest) -> PathResponse:
         name = req.name
+        state = req.state 
         goal_name = req.goal_name
 
-        state = self.clients[name]
         self.shared_track.update_road_user(name, state)
         self.small_track.update_road_user(name, state)
         self.large_track.update_road_user(name, state)
@@ -140,9 +166,9 @@ class ltms:
         in_shared_track = name in self.shared_track.road_users
         in_small_track = name in self.small_track.road_users
         in_large_track = name in self.large_track.road_users
-        in_intersection_1 = 1.0 >= np.hypot(self.INTERSECTION_1[0] - state.x,
+        in_intersection_1 = 0.6 >= np.hypot(self.INTERSECTION_1[0] - state.x,
                                             self.INTERSECTION_1[1] - state.y)
-        in_intersection_2 = 1.0 >= np.hypot(self.INTERSECTION_2[0] - state.x,
+        in_intersection_2 = 0.6 >= np.hypot(self.INTERSECTION_2[0] - state.x,
                                             self.INTERSECTION_2[1] - state.y)
 
         path_name = 'unknown'
@@ -176,9 +202,13 @@ class ltms:
                 'unknown'
             )
 
-        velocity = 0.5
-        if in_large_track and len(self.large_track.road_users) <= 1:
-            velocity = 0.8
+        velocity = 0.4
+        if path_name in ('large', 'shared') and len(self.large_track.road_users) <= 1:
+            velocity = 0.6
+
+        time_since_person = rospy.Time.now() - self.last_person
+        if path_name == 'small' and time_since_person < rospy.Duration(3):
+            path_name = 'large'
 
         resp = PathResponse()
         resp.velocity = velocity

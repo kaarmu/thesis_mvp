@@ -7,3 +7,6 @@
 [submodule "src/svea_spac"]
 	path = src/svea_spac
 	url = https://github.com/kth-sml/svea_spac
+[submodule "src/zed-ros-wrapper"]
+	path = src/zed-ros-wrapper
+	url = https://github.com/stereolabs/zed-ros-wrapper
