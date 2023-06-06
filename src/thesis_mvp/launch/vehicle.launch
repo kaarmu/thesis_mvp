@@ -7,9 +7,16 @@
     <arg name="is_sim"          default="true"/>
     <arg name="use_rviz"        default="true"/>
     <arg name="start_rviz"      default="false"/>
-    <arg name="initial_pose_x"  default="2.5"/>
-    <arg name="initial_pose_y"  default="-1.0"/>
-    <arg name="initial_pose_a"  default="1.57" /> <!-- wrt to map-->
+
+    <!-- Initial position of SVEA7 -->
+    <arg if="$(eval name == 'svea7')" name="initial_pose_x"  default="+1.0"/>
+    <arg if="$(eval name == 'svea7')" name="initial_pose_y"  default="-2.0"/>
+    <arg if="$(eval name == 'svea7')" name="initial_pose_a"  default="0.00" /> <!-- wrt to map-->
+
+    <!-- Initial position of SVEA4 -->
+    <arg if="$(eval name == 'svea4')" name="initial_pose_x"  default="+0.0"/>
+    <arg if="$(eval name == 'svea4')" name="initial_pose_y"  default="-2.0"/>
+    <arg if="$(eval name == 'svea4')" name="initial_pose_a"  default="0.00" /> <!-- wrt to map-->
 
     <!-- Start map server -->
     <node name="map_server" pkg="map_server" type="map_server" args="$(find svea_core)/maps/$(arg map).yaml" output="screen"/>

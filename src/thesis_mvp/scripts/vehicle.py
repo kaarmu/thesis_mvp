@@ -93,10 +93,12 @@ class vehicle:
         rospy.wait_for_message('/ltms/heartbeat', Empty)
         rospy.loginfo("Connected to LTMS")
 
+        self.path = None
         self.path_name = 'unknown'
+
         self.goal_pub = rospy.Publisher('/goal', PointStamped, queue_size=10)
         self.request_path = rospy.ServiceProxy('/ltms/request_path', PathService)
-        rospy.Timer(rospy.Duration(3),
+        rospy.Timer(rospy.Duration(1),
                     lambda *_: self.path_requester())
 
         ## Start simulation
@@ -128,10 +130,13 @@ class vehicle:
     def path_requester(self):
         req = PathRequest()
         req.name = self.NAME
+        req.state = self.state.state_msg
         req.goal_name = self.goal_name
         req.goal = self.goal
 
+        print(f'> Path requested for {self.goal_name}')
         resp: PathResponse = self.request_path(req)
+        print(f'=> Path received')
 
         if resp.path_name != self.path_name and resp.path_name != 'unknown':
 
@@ -155,9 +160,12 @@ class vehicle:
 
     def run(self):
 
+        while self.path is None:
+            self.path_requester()
+        
         while self.keep_alive():
 
-            path = self.path_requester()
+            path = self.path
             i = self.dist_to(path).argmin()
 
             if len(path) - 10 < i:
@@ -177,7 +185,7 @@ class vehicle:
                 if self.dist_to((self.goal.x, self.goal.y)) < 0.4:
                     self.set_goal('A' if self.goal_name == self.GOAL else
                                   self.GOAL)
-                    break
+
 
     def keep_alive(self):
         return not rospy.is_shutdown()

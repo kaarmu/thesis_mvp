@@ -1,4 +1,5 @@
 string name
+svea_msgs/VehicleState state
 string goal_name
 geometry_msgs/Point goal
 ---
