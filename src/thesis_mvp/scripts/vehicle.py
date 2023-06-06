@@ -93,6 +93,7 @@ class vehicle:
         rospy.wait_for_message('/ltms/heartbeat', Empty)
         rospy.loginfo("Connected to LTMS")
 
+        self.path_name = 'unknown'
         self.goal_pub = rospy.Publisher('/goal', PointStamped, queue_size=10)
         self.request_path = rospy.ServiceProxy('/ltms/request_path', PathService)
         rospy.Timer(rospy.Duration(3),
@@ -107,7 +108,7 @@ class vehicle:
 
         self.set_goal(self.GOAL)
 
-        print(f"Starting going to {self.goal_name}")
+        print('Starting!')
 
     def set_velocity(self, velocity):
         self.controller.target_velocity = velocity
@@ -122,6 +123,8 @@ class vehicle:
         msg.point = self.goal
         self.goal_pub.publish(msg)
 
+        rospy.loginfo(f'Going to {self.goal_name}')
+
     def path_requester(self):
         req = PathRequest()
         req.name = self.NAME
@@ -130,7 +133,9 @@ class vehicle:
 
         resp: PathResponse = self.request_path(req)
 
-        if resp.path:
+        if resp.path_name != self.path_name and resp.path_name != 'unknown':
+
+            self.path_name = resp.path_name
 
             self.path = np.array([(p.pose.position.x, p.pose.position.y) 
                                   for p in resp.path.poses])

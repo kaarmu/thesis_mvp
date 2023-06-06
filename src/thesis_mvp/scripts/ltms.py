@@ -45,25 +45,23 @@ class ltms:
         self.INTERSECTION_2 = [-2.5, -1.0, -np.pi/2] 
 
         self.SHARED_CIRCUIT = [
-            [1.0],
-            [0.5, 90],
-            [4.0],
-            [0.5, 90],
-            [1.0],
+            [1.0, 90],
+            [3.0],
+            [1.0, 90],
         ]
 
         self.SMALL_CIRCUIT = [
-            [0.5, 90],
-            [4.0],
-            [0.5, 90],
+            [1.0, 90],
+            [3.0],
+            [1.0, 90],
         ]
 
         self.LARGE_CIRCUIT = [
-            [2.5],
-            [0.5, 90],
-            [4.0],
-            [0.5, 90],
-            [2.5],
+            [2.0],
+            [1.0, 90],
+            [3.0],
+            [1.0, 90],
+            [2.0],
         ]
 
         ## Create simulators, models, managers, etc.
@@ -147,42 +145,50 @@ class ltms:
         in_intersection_2 = 1.0 >= np.hypot(self.INTERSECTION_2[0] - state.x,
                                             self.INTERSECTION_2[1] - state.y)
 
-        resp = PathResponse()
+        path_name = 'unknown'
         if in_intersection_1:
             # is on both small and large track
-            resp.path = (
-                self.to_path(self.small_track) if goal_name == 'A' else
-                self.to_path(self.small_track) if goal_name == 'B' else
-                self.to_path(self.large_track) if goal_name == 'C' else
-                []
+            path_name = (
+                'small' if goal_name == 'A' else
+                'small' if goal_name == 'B' else
+                'large' if goal_name == 'C' else
+                'unknown'
             )
         elif in_intersection_2:
             # is on both small and large track
-            resp.path = self.to_path(self.shared_track)
+            path_name = 'shared'
         elif in_shared_track:
-            resp.path = self.to_path(self.shared_track)
+            path_name = 'shared'
         elif in_small_track:
             # is on small track
-            resp.path = (
-                self.to_path(self.small_track) if goal_name == 'A' else
-                self.to_path(self.small_track) if goal_name == 'B' else
-                self.to_path(self.small_track) if goal_name == 'C' else
-                []
+            path_name = (
+                'small' if goal_name == 'A' else
+                'small' if goal_name == 'B' else
+                'small' if goal_name == 'C' else
+                'unknown'
             )
         elif in_large_track:
             # is on large track
-            resp.path = (
-                self.to_path(self.large_track) if goal_name == 'A' else
-                self.to_path(self.large_track) if goal_name == 'B' else
-                self.to_path(self.large_track) if goal_name == 'C' else
-                []
+            path_name = (
+                'large' if goal_name == 'A' else
+                'large' if goal_name == 'B' else
+                'large' if goal_name == 'C' else
+                'unknown'
             )
 
+        velocity = 0.5
         if in_large_track and len(self.large_track.road_users) <= 1:
-            resp.velocity = 1.0
-        else:
-            resp.velocity = 0.5
+            velocity = 0.8
 
+        resp = PathResponse()
+        resp.velocity = velocity
+        resp.path_name = path_name
+        resp.path = (
+            self.to_path(self.shared_track) if path_name == 'shared' else
+            self.to_path(self.small_track) if path_name == 'small' else
+            self.to_path(self.large_track) if path_name == 'large' else 
+            Path()
+        )
         return resp
 
     def run(self):

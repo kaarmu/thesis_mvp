@@ -14,14 +14,18 @@
 
     <node name="nats_connector" pkg="nats_ros_connector" type="nats_connector.py" output="screen">
         <rosparam>
-        host: nats://sml-wan.asuscomm.com 
+        host: nats://130.237.50.52:4222 # nats://sml-wan.asuscomm.com 
         publishers:
           - /ltms/heartbeat
         subscribers:
           - /svea7/state 
           - /svea7/path 
+          - /svea7/goal
+          - /svea7/target
           - /svea4/state
           - /svea4/path
+          - /svea4/goal
+          - /svea4/target
         services:
           - /ltms/request_path
         </rosparam>

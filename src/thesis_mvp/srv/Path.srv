@@ -3,4 +3,5 @@ string goal_name
 geometry_msgs/Point goal
 ---
 float32 velocity
+string path_name
 nav_msgs/Path path
