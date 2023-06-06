@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+from threading import Event
+
 import numpy as np
 
 import rospy
@@ -43,8 +45,8 @@ class vehicle:
         self.SIM_START = load_param('~sim_start', [])
 
         self.GOAL_POINTS = {
-            'A': Point(0.0, -2.5, 0),
-            'B': Point(0.0, -0.5, 0),
+            'A': Point(0.0, -2.0, 0),
+            'B': Point(0.0, +0.0, 0),
             'C': Point(0.0, +2.0, 0),
         }
 
@@ -95,10 +97,11 @@ class vehicle:
 
         self.path = None
         self.path_name = 'unknown'
+        self.path_event = Event()
 
         self.goal_pub = rospy.Publisher('/goal', PointStamped, queue_size=10)
         self.request_path = rospy.ServiceProxy('/ltms/request_path', PathService)
-        rospy.Timer(rospy.Duration(1),
+        rospy.Timer(rospy.Duration(2),
                     lambda *_: self.path_requester())
 
         ## Start simulation
@@ -148,6 +151,9 @@ class vehicle:
             if self.USE_RVIZ and self.path.any():
                 xtraj, ytraj = zip(*self.path)
                 self.rviz.update_traj(xtraj, ytraj)
+
+            self.path_event.set()
+            print(f'=> Path updated from {self.path_name} to {resp.path_name}')
         
         self.set_velocity(resp.velocity)
 
@@ -160,24 +166,21 @@ class vehicle:
 
     def run(self):
 
-        while self.path is None:
-            self.path_requester()
+        self.path_event.wait()
         
         while self.keep_alive():
 
             path = self.path
             i = self.dist_to(path).argmin()
 
-            if len(path) - 10 < i:
-                i = 0
-
             for point in path[i:]:
 
-                if self.path is not path:
+                if self.path_event.is_set():
+                    self.path_event.clear()
                     break
 
                 self.target = tuple(point)
-                while 0.4 < self.dist_to(self.target):
+                while 0.4 < self.dist_to(self.target) < 1.0:
                     if not self.keep_alive(): return
                     self.rate.sleep()
                     self.spin()
@@ -185,7 +188,6 @@ class vehicle:
                 if self.dist_to((self.goal.x, self.goal.y)) < 0.4:
                     self.set_goal('A' if self.goal_name == self.GOAL else
                                   self.GOAL)
-
 
     def keep_alive(self):
         return not rospy.is_shutdown()
