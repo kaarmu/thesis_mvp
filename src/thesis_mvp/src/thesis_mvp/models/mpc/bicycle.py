@@ -13,15 +13,15 @@ class BicycleModel(Model):
 
         ## STATE VARIABLES ##
 
-        x = self.set_variable(var_type='states', var_name='x', shape=(1, 1))
-        y = self.set_variable(var_type='states', var_name='y', shape=(1, 1))
-        v = self.set_variable(var_type='states', var_name='v', shape=(1, 1))
-        yaw = self.set_variable(var_type='states', var_name='yaw', shape=(1, 1))
+        x = self.set_variable(var_type='_x', var_name='x', shape=(1, 1))
+        y = self.set_variable(var_type='_x', var_name='y', shape=(1, 1))
+        v = self.set_variable(var_type='_x', var_name='v', shape=(1, 1))
+        yaw = self.set_variable(var_type='_x', var_name='yaw', shape=(1, 1))
 
         ## INPUT VARIABLES ##
 
-        steering = self.set_variable(var_type='inputs', var_name='steering', shape=(1, 1))
-        velocity = self.set_variable(var_type='inputs', var_name='velocity', shape=(1, 1))
+        steering = self.set_variable(var_type='_u', var_name='steering', shape=(1, 1))
+        velocity = self.set_variable(var_type='_u', var_name='velocity', shape=(1, 1))
 
         ## STATE SPACE DYNAMICS ##
 

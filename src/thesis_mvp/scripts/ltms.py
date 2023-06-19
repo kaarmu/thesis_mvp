@@ -5,9 +5,10 @@ import numpy as np
 import rospy
 import tf2_ros
 from tf2_geometry_msgs import do_transform_point
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, ColorRGBA
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PointStamped, PoseStamped
+from geometry_msgs.msg import PointStamped, PoseStamped, Vector3
+from visualization_msgs.msg import Marker
 from svea_msgs.msg import VehicleState
 from rsu_msgs.msg import StampedObjectPoseArray
 
@@ -98,15 +99,25 @@ class ltms:
 
         self.last_person = rospy.Time(0)
 
-        people_pub = rospy.Publisher('people', PointStamped, queue_size=10)
+        people_pub = rospy.Publisher('people', Marker, queue_size=10)
         def objectposes_cb(msg):
+            marker = Marker()
+            marker.header.frame_id = 'map'
+            marker.header.stamp = msg.header.stamp
+            marker.type = Marker.SPHERE_LIST
+            marker.action = 0 
+            marker.pose.orientation.w = 1
+            marker.scale = Vector3(0.2, 0.2, 0.2)
+            marker.color = ColorRGBA(0, 1, 0, 1)
+            marker.lifetime = rospy.Duration(0.5)
             for objpose in msg.objects:
                 if objpose.object.label == 'person':
-                    point = PointStamped(msg.header, objpose.pose.pose.position)
-                    people_pub.publish(point)
-                    point = self.transform_point('map', point)
-                    if -0.25 < point.point.x < 0.25 and -0.25 < point.point.y < 0.25: 
+                    point_stamped = PointStamped(msg.header, objpose.pose.pose.position)
+                    point_stamped = self.transform_point('map', point_stamped)
+                    marker.points.append(point_stamped.point)
+                    if -0.25 < point_stamped.point.x < 0.25 and -0.25 < point_stamped.point.y < 0.25: 
                         self.last_person = msg.header.stamp
+            people_pub.publish(marker)
         rospy.Subscriber('/objectposes', StampedObjectPoseArray, objectposes_cb)
 
         self.clients = {}

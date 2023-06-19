@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /SVEA41
+        - /Sensor1
       Splitter Ratio: 0.5
     Tree Height: 258
   - Class: rviz/Selection
@@ -95,59 +95,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        aruco[105]:
+        aruco[126]:
           Value: true
-        aruco[106]:
-          Value: true
-        aruco[107]:
-          Value: true
-        aruco[109]:
-          Value: true
-        aruco[111]:
-          Value: true
-        aruco[112]:
-          Value: true
-        aruco[113]:
-          Value: true
-        aruco[118]:
-          Value: true
-        aruco[121]:
-          Value: true
-        aruco[125]:
-          Value: true
-        aruco[127]:
-          Value: true
-        aruco[130]:
-          Value: true
-        aruco[131]:
-          Value: true
-        aruco[145]:
-          Value: true
-        aruco[158]:
-          Value: true
-        aruco[17]:
-          Value: true
-        aruco[188]:
+        aruco[152]:
           Value: true
         aruco[190]:
           Value: true
-        aruco[216]:
-          Value: true
-        aruco[219]:
-          Value: true
-        aruco[226]:
-          Value: true
-        aruco[236]:
-          Value: true
-        aruco[24]:
-          Value: true
-        aruco[34]:
-          Value: true
-        aruco[37]:
-          Value: true
-        aruco[52]:
-          Value: true
-        aruco[74]:
+        aruco[80]:
           Value: true
         base_link:
           Value: true
@@ -182,59 +136,13 @@ Visualization Manager:
             zed_camera_center:
               zed_left_camera_frame:
                 zed_left_camera_optical_frame:
-                  aruco[105]:
+                  aruco[126]:
                     {}
-                  aruco[106]:
-                    {}
-                  aruco[107]:
-                    {}
-                  aruco[109]:
-                    {}
-                  aruco[111]:
-                    {}
-                  aruco[112]:
-                    {}
-                  aruco[113]:
-                    {}
-                  aruco[118]:
-                    {}
-                  aruco[121]:
-                    {}
-                  aruco[125]:
-                    {}
-                  aruco[127]:
-                    {}
-                  aruco[130]:
-                    {}
-                  aruco[131]:
-                    {}
-                  aruco[145]:
-                    {}
-                  aruco[158]:
-                    {}
-                  aruco[17]:
-                    {}
-                  aruco[188]:
+                  aruco[152]:
                     {}
                   aruco[190]:
                     {}
-                  aruco[216]:
-                    {}
-                  aruco[219]:
-                    {}
-                  aruco[226]:
-                    {}
-                  aruco[236]:
-                    {}
-                  aruco[24]:
-                    {}
-                  aruco[34]:
-                    {}
-                  aruco[37]:
-                    {}
-                  aruco[52]:
-                    {}
-                  aruco[74]:
+                  aruco[80]:
                     {}
               zed_right_camera_frame:
                 zed_right_camera_optical_frame:
@@ -407,16 +315,13 @@ Visualization Manager:
             TF: true
             Value: true
           Zoom Factor: 1
-        - Alpha: 1
-          Class: rviz/PointStamped
-          Color: 204; 41; 204
+        - Class: rviz/Marker
           Enabled: true
-          History Length: 1
+          Marker Topic: /people
           Name: People
-          Queue Size: 10
-          Radius: 0.10000000149011612
-          Topic: /people
-          Unreliable: false
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
       Enabled: true
       Name: Sensor

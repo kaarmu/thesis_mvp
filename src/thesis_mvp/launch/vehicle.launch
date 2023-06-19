@@ -69,7 +69,7 @@
         </rosparam>
         <rosparam if="$(eval name == 'svea7')">
         goal: B
-        sim_start: [2.5, -1.0, 1.54]
+        sim_start: [2.5, -0.8, 1.54]
         </rosparam>
         <rosparam if="$(eval name == 'svea4')">
         goal: C

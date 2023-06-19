@@ -15,7 +15,8 @@ from svea.interfaces import ActuationInterface, LocalizationInterface
 from svea.data import RVIZPathHandler
 
 from thesis_mvp.srv import Path as PathService, PathRequest, PathResponse
-from thesis_mvp.track import Arc, Track
+from thesis_mvp.controllers.mpc import ModelPredictiveController
+from thesis_mvp.models.mpc.bicycle import BicycleModel
 
 def load_param(name, value=None):
     if value is None:
@@ -62,7 +63,28 @@ class vehicle:
 
         ## Create simulators, models, managers, etc.
 
-        self.controller = PurePursuitController()
+        self.USE_MPC = True
+
+        if self.USE_MPC:
+            mpc_model = BicycleModel()
+            mpc_controller = ModelPredictiveController(
+                mpc_model, 
+                step=0.1, 
+                horizon=5,
+                weights = {'input': {'steering': 1, 'velocity': 1}, 
+                           'state': {'x': 1, 'y': 1, 'yaw': 0, 'v': 1},
+                           'terminal': {'x': 10, 'y': 10, 'yaw': 0, 'v': 10}},
+                constraints = {('upper', 'steering'): +np.pi/5,
+                               ('lower', 'steering'): -np.pi/5,
+                               ('upper', 'velocity'): +0.8,
+                               ('lower', 'velocity'): -0.5},
+            )
+            mpc_controller.set_initial_guess()
+            self.controller = mpc_controller
+
+        else:
+            self.controller = PurePursuitController()
+
         self.set_velocity(self.TARGET_VELOCITY)
 
         if self.USE_RVIZ:
@@ -92,12 +114,81 @@ class vehicle:
 
         
         rospy.loginfo('Waiting for LTMS')
-        rospy.wait_for_message('/ltms/heartbeat', Empty)
+        # rospy.wait_for_message('/ltms/heartbeat', Empty)
         rospy.loginfo("Connected to LTMS")
 
         self.path = None
         self.path_name = 'unknown'
         self.path_event = Event()
+
+        if True:
+            from nav_msgs.msg import Path
+            from geometry_msgs.msg import PoseStamped
+            from thesis_mvp.track import Track, Arc
+
+            INTERSECTION_1 = [+2.5, -1.0, +np.pi/2]
+            INTERSECTION_2 = [-2.5, -1.0, -np.pi/2] 
+
+            SHARED_CIRCUIT = [
+                [1.0, 90],
+                [3.0],
+                [1.0, 90],
+            ]
+
+            SMALL_CIRCUIT = [
+                [1.0, 90],
+                [3.0],
+                [1.0, 90],
+            ]
+
+            LARGE_CIRCUIT = [
+                [2.5],
+                [1.0, 90],
+                [3.0],
+                [1.0, 90],
+                [2.5],
+            ]
+
+            def to_path(track):
+                path = Path()
+                path.header.frame_id = 'map'
+                path.header.stamp = rospy.Time.now()
+                for x, y in track:
+                    pose = PoseStamped() 
+                    pose.header = path.header
+                    pose.pose.position.x = x
+                    pose.pose.position.y = y
+                    path.poses.append(pose)
+                return path
+
+            large_track = Track([
+                Arc(*arc) if len(arc) == 1 else
+                Arc.from_circle_segment(*arc)
+                for arc in LARGE_CIRCUIT
+            ], *INTERSECTION_1, POINT_DENSITY=100)
+
+            shared_track = Track([
+                Arc(*arc) if len(arc) == 1 else
+                Arc.from_circle_segment(*arc)
+                for arc in SHARED_CIRCUIT
+            ], *INTERSECTION_2, POINT_DENSITY=100)
+            # shared_track.connects_to(large_track)
+
+            small_track = Track([
+                Arc(*arc) if len(arc) == 1 else
+                Arc.from_circle_segment(*arc)
+                for arc in SMALL_CIRCUIT
+            ], *INTERSECTION_1, POINT_DENSITY=100)
+            small_track.connects_to(shared_track)
+
+
+            self.path = np.array([(p.pose.position.x, p.pose.position.y) 
+                                  for p in to_path(small_track).poses])
+            self.path_event.set()
+
+            if self.USE_RVIZ and self.path.any():
+                xtraj, ytraj = zip(*self.path)
+                self.rviz.update_traj(xtraj, ytraj)
 
         self.goal_pub = rospy.Publisher('/goal', PointStamped, queue_size=10)
         self.request_path = rospy.ServiceProxy('/ltms/request_path', PathService)
@@ -116,7 +207,9 @@ class vehicle:
         print('Starting!')
 
     def set_velocity(self, velocity):
-        self.controller.target_velocity = velocity
+        self.target_velocity = velocity
+        if not self.USE_MPC:
+            self.controller.target_velocity = velocity
 
     def set_goal(self, goal_name):
         self.goal_name = goal_name
@@ -131,6 +224,7 @@ class vehicle:
         rospy.loginfo(f'Going to {self.goal_name}')
 
     def path_requester(self):
+        return
         req = PathRequest()
         req.name = self.NAME
         req.state = self.state.state_msg
@@ -156,8 +250,6 @@ class vehicle:
             print(f'=> Path updated from {self.path_name} to {resp.path_name}')
         
         self.set_velocity(resp.velocity)
-
-        return self.path
 
     def dist_to(self, xy):
         xy = np.asarray(xy)
@@ -194,8 +286,17 @@ class vehicle:
 
     def spin(self):
 
-        steering, velocity = self.controller.compute_control(self.state,
-                                                             self.target)
+        steering, velocity = 0, 0
+        if self.USE_MPC:
+            x0 = np.array([self.target[0] - self.state.x,
+                           self.target[1] - self.state.y,
+                           self.target_velocity - self.state.v,
+                           self.state.yaw])
+            steering, velocity = self.controller.make_step(x0)
+            print(steering, velocity)
+        else:
+            steering, velocity = self.controller.compute_control(self.state,
+                                                                 self.target)
         self.actuation.send_control(steering, velocity)
 
         if self.USE_RVIZ:

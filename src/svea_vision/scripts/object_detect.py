@@ -174,6 +174,8 @@ class object_detect:
                 obj.label = result.names[c]
                 obj.detection_conf = p
                 obj.tracking_conf = tracker.kf.likelihood
+                obj.image_width = self.IMAGE_WIDTH
+                obj.image_height = self.IMAGE_HEIGHT
                 obj.roi.x_offset = u1
                 obj.roi.y_offset = v1
                 obj.roi.width = u2 - u1

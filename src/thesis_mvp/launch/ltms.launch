@@ -37,7 +37,7 @@
         <rosparam>
         clients:
           - svea7
-          - svea4
+          # - svea4
         </rosparam>
     </node>
 </launch>
